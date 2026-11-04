@@ -1,0 +1,21 @@
+# python编译缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 虚拟环境
+.venv/
+venv/
+
+# 程序输出产物
+out/
+
+# 客户原始数据！！禁止提交Excel到git仓库
+data/
+*.xlsx
+*.xls
+
+# vscode临时文件
+.vscode/
+*.log
