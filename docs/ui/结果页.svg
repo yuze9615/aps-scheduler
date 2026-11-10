@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="620" viewBox="0 0 900 620" font-family="system-ui,'Microsoft YaHei',sans-serif">
+  <rect width="900" height="64" fill="#1d4ed8"/>
+  <text x="28" y="40" fill="#fff" font-size="22" font-weight="700">宏达精密 · 本地排产助手</text>
+
+  <!-- 指标卡 -->
+  <text x="28" y="100" font-size="16" font-weight="700">运行指标</text>
+  <g>
+    <rect x="28" y="112" width="140" height="70" rx="9" fill="#f0f4ff" stroke="#c7d2fe"/>
+    <text x="48" y="150" fill="#1d4ed8" font-size="20" font-weight="700">16650 分</text>
+    <text x="48" y="170" fill="#64748b" font-size="12">总工时跨度</text>
+    <rect x="184" y="112" width="140" height="70" rx="9" fill="#f0f4ff" stroke="#c7d2fe"/>
+    <text x="204" y="150" fill="#1d4ed8" font-size="20" font-weight="700">7 / 13</text>
+    <text x="204" y="170" fill="#64748b" font-size="12">迟到单数</text>
+    <rect x="340" y="112" width="140" height="70" rx="9" fill="#f0f4ff" stroke="#c7d2fe"/>
+    <text x="360" y="150" fill="#1d4ed8" font-size="20" font-weight="700">49</text>
+    <text x="360" y="170" fill="#64748b" font-size="12">工序任务数</text>
+    <rect x="496" y="112" width="140" height="70" rx="9" fill="#f0f4ff" stroke="#c7d2fe"/>
+    <text x="516" y="150" fill="#1d4ed8" font-size="20" font-weight="700">9 / 12</text>
+    <text x="516" y="170" fill="#64748b" font-size="12">可用设备</text>
+  </g>
+
+  <!-- 排单表 -->
+  <text x="28" y="218" font-size="16" font-weight="700">周排单表（结果页必须包含全列名）</text>
+  <rect x="28" y="230" width="844" height="230" rx="10" fill="#fff" stroke="#e5e7eb"/>
+  <rect x="28" y="230" width="844" height="30" fill="#f3f4f6"/>
+  <g font-size="13" fill="#374151">
+    <text x="44" y="251">机台</text><text x="150" y="251">单号</text><text x="270" y="251">工序</text>
+    <text x="380" y="251">数量</text><text x="470" y="251">开工</text><text x="600" y="251">完工</text><text x="740" y="251">工时(分)</text>
+  </g>
+  <g font-size="13" fill="#111827">
+    <text x="44" y="285">CNC-01</text><text x="150" y="285">HD-2026-111</text><text x="270" y="285">铣(工序3)</text><text x="380" y="285">20</text><text x="470" y="285">11-10 13:40</text><text x="600" y="285">11-11 17:40</text><text x="740" y="285">1200</text>
+    <text x="44" y="315">CNC-02</text><text x="150" y="315">HD-2026-106</text><text x="270" y="315">铣(工序3)</text><text x="380" y="315">25</text><text x="470" y="315">11-10 13:15</text><text x="600" y="315">11-11 13:55</text><text x="740" y="315">1000</text>
+    <text x="44" y="345">LAT-01</text><text x="150" y="345">HD-2026-101</text><text x="270" y="345">车(工序2)</text><text x="380" y="345">40</text><text x="470" y="345">11-09 08:00</text><text x="600" y="345">11-10 02:00</text><text x="740" y="345">1800</text>
+    <text x="44" y="375">SAW-01</text><text x="150" y="375">HD-2026-101</text><text x="270" y="375">下料(工序1)</text><text x="380" y="375">40</text><text x="470" y="375">11-09 08:00</text><text x="600" y="375">11-09 13:20</text><text x="740" y="375">800</text>
+    <text x="44" y="405">DRL-01</text><text x="150" y="405">HD-2026-105</text><text x="270" y="405">钻(工序3)</text><text x="380" y="405">30</text><text x="470" y="405">11-11 08:00</text><text x="600" y="405">11-12 05:00</text><text x="740" y="405">900</text>
+  </g>
+  <text x="44" y="445" fill="#6b7280" font-size="12">… 共 49 行（可滚动）…</text>
+
+  <!-- 下载 -->
+  <text x="28" y="490" font-size="16" font-weight="700">下载产物</text>
+  <g font-size="14" fill="#1d4ed8">
+    <text x="28" y="514">📄 排单表.xlsx</text>
+    <text x="200" y="514">📊 甘特图.html（新窗口）</text>
+    <text x="420" y="514">⚠ 交期风险清单.md</text>
+    <text x="640" y="514">🩺 数据体检报告.md</text>
+  </g>
+
+  <rect x="28" y="540" width="844" height="56" rx="10" fill="#f0f4ff" stroke="#c7d2fe"/>
+  <text x="48" y="566" fill="#1e40af" font-size="13">结果页统一风格：蓝顶栏 + 白卡片 + 蓝主按钮；排单表列名齐全（机台/单号/工序/数量/开工/完工/工时）；</text>
+  <text x="48" y="586" fill="#6b7280" font-size="12">甘特图单文件 HTML 双击可离线打开；下载中文文件名不乱码（filename*=UTF-8''）。</text>
+</svg>

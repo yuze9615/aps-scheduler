@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560" font-family="system-ui,'Microsoft YaHei',sans-serif">
+  <rect width="900" height="64" fill="#1d4ed8"/>
+  <text x="28" y="40" fill="#fff" font-size="22" font-weight="700">宏达精密 · 本地排产助手</text>
+
+  <text x="28" y="104" font-size="16" font-weight="700">交期风险清单</text>
+
+  <!-- 风险项：迟到（红） -->
+  <rect x="28" y="116" width="844" height="44" rx="7" fill="#fee2e2"/>
+  <text x="48" y="144" fill="#b91c1c" font-size="14">❌ HD-2026-101（阀体A，40件）：交期 11-10 00:00 → 预计完工 11-26 20:30　迟到 16.9 天</text>
+
+  <rect x="28" y="168" width="844" height="44" rx="7" fill="#fee2e2"/>
+  <text x="48" y="196" fill="#b91c1c" font-size="14">❌ HD-2026-102（阀体A，60件）：交期 11-12 00:00 → 预计完工 11-28 13:30　迟到 16.6 天</text>
+
+  <rect x="28" y="220" width="844" height="44" rx="7" fill="#fee2e2"/>
+  <text x="48" y="248" fill="#b91c1c" font-size="14">❌ HD-2026-104（阀芯C，80件）：交期 11-14 00:00 → 预计完工 11-25 19:50　迟到 11.8 天</text>
+
+  <!-- 风险项：按期（绿） -->
+  <rect x="28" y="272" width="844" height="44" rx="7" fill="#dcfce7"/>
+  <text x="48" y="300" fill="#166534" font-size="14">✅ HD-2026-112（端盖E，60件）：交期 11-19 00:00 → 预计完工 11-16 14:55　按期</text>
+
+  <rect x="28" y="324" width="844" height="44" rx="7" fill="#dcfce7"/>
+  <text x="48" y="352" fill="#166534" font-size="14">✅ HD-2026-113（阀体B，35件）：交期 11-22 00:00 → 预计完工 11-19 19:50　按期（先做一半）</text>
+
+  <!-- 风险项：待确认（灰） -->
+  <rect x="28" y="376" width="844" height="44" rx="7" fill="#f3f4f6"/>
+  <text x="48" y="404" fill="#6b7280" font-size="14">⚠ HD-2026-103（阀芯C，120件）：交期缺失/未排，需人工确认（数量已确认仍可按期评估）</text>
+
+  <rect x="28" y="436" width="844" height="44" rx="9" fill="#eef2ff" stroke="#c7d2fe"/>
+  <text x="48" y="464" fill="#1e40af" font-size="15" font-weight="700">迟到单数：7 / 13</text>
+
+  <rect x="28" y="492" width="844" height="48" rx="10" fill="#f0f4ff" stroke="#c7d2fe"/>
+  <text x="48" y="520" fill="#1e40af" font-size="13">风险页交互：每项标注 ❌迟到天数 / ✅按期 / ⚠待确认；红=赶不上、绿=能赶上、灰=需问客户；</text>
+  <text x="48" y="538" fill="#6b7280" font-size="12">底部汇总迟到单数。点列表项可联动跳转排单表对应机台行（预留）。统一蓝顶栏 + 红/绿/灰语义色。</text>
+</svg>
