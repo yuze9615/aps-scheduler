@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>宏达精密 · 本地排产助手</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: system-ui,"Microsoft YaHei",sans-serif; margin:0; background:#f5f6f8; color:#1f2937; }
+  header { background:#1d4ed8; color:#fff; padding:16px 24px; }
+  header h1 { margin:0; font-size:20px; }
+  header p { margin:4px 0 0; font-size:13px; opacity:.85; }
+  main { max-width:1080px; margin:20px auto; padding:0 16px 60px; }
+  .card { background:#fff; border-radius:10px; padding:18px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  button { background:#1d4ed8; color:#fff; border:0; padding:9px 16px; border-radius:7px; font-size:14px; cursor:pointer; }
+  button:disabled { background:#9ca3af; cursor:not-allowed; }
+  button.ghost { background:#e5e7eb; color:#1f2937; }
+  input[type=file] { font-size:13px; }
+  .banner { padding:10px 14px; border-radius:7px; margin-bottom:12px; font-size:14px; display:none; }
+  .banner.err { background:#fee2e2; color:#b91c1c; }
+  .banner.ok { background:#dcfce7; color:#166534; }
+  .banner.info { background:#dbeafe; color:#1e40af; }
+  .kpis { display:flex; gap:14px; flex-wrap:wrap; }
+  .kpi { background:#f0f4ff; border:1px solid #c7d2fe; border-radius:9px; padding:14px 18px; min-width:120px; }
+  .kpi b { display:block; font-size:22px; color:#1d4ed8; }
+  .kpi span { font-size:12px; color:#64748b; }
+  table { border-collapse:collapse; width:100%; font-size:13px; }
+  th,td { border:1px solid #e5e7eb; padding:6px 8px; text-align:left; }
+  th { background:#f3f4f6; position:sticky; top:0; }
+  .scroll { max-height:320px; overflow:auto; }
+  .late { color:#b91c1c; font-weight:600; }
+  .ontime { color:#166534; }
+  .sec-title { font-weight:700; margin:0 0 10px; font-size:15px; }
+  .muted { color:#6b7280; font-size:13px; }
+  a.dl { color:#1d4ed8; text-decoration:none; font-weight:600; }
+  .spinner { display:inline-block; width:14px; height:14px; border:2px solid #fff; border-top-color:transparent; border-radius:50%; animation:spin .7s linear infinite; vertical-align:-2px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>宏达精密 · 本地排产助手</h1>
+  <p>拖入 Excel 台账（订单 / 设备 / 工艺路线）→ 一键生成周排单表 + 甘特图 + 交期风险 + 数据体检</p>
+</header>
+
+<main>
+  <div id="banner" class="banner"></div>
+
+  <!-- 上传 -->
+  <div class="card">
+    <div class="row">
+      <input type="file" id="file" accept=".xlsx,.xls">
+      <button id="uploadBtn">① 上传台账</button>
+      <button id="genBtn" class="ghost" disabled>② 生成排产</button>
+      <span id="uploadInfo" class="muted"></span>
+    </div>
+  </div>
+
+  <!-- 指标卡 -->
+  <div class="card" id="kpiCard" style="display:none">
+    <p class="sec-title">运行指标</p>
+    <div class="kpis" id="kpis"></div>
+  </div>
+
+  <!-- 排单表 -->
+  <div class="card" id="schedCard" style="display:none">
+    <p class="sec-title">周排单表（机台 / 单号 / 工序 / 数量 / 开工 / 完工 / 工时）</p>
+    <div class="scroll"><table id="schedTable"></table></div>
+  </div>
+
+  <!-- 甘特 + 下载 -->
+  <div class="card" id="dlCard" style="display:none">
+    <p class="sec-title">下载产物</p>
+    <div class="row">
+      <a class="dl" id="dlSched" href="#">📄 排单表.xlsx</a>
+      <a class="dl" id="dlGantt" href="#" target="_blank">📊 甘特图.html（新窗口打开）</a>
+      <a class="dl" id="dlRisk" href="#">⚠️ 交期风险清单.md</a>
+      <a class="dl" id="dlHealth" href="#">🩺 数据体检报告.md</a>
+    </div>
+  </div>
+
+  <!-- 风险 -->
+  <div class="card" id="riskCard" style="display:none">
+    <p class="sec-title">交期风险清单</p>
+    <div id="riskList"></div>
+  </div>
+
+  <!-- 体检 -->
+  <div class="card" id="healthCard" style="display:none">
+    <p class="sec-title">数据体检报告（脏数据逐条）</p>
+    <div id="healthList"></div>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let FILE_ID = null;
+
+function show(type, msg){
+  const b = $("banner"); b.className = "banner " + type; b.style.display = "block"; b.textContent = msg;
+}
+function hide(){ $("banner").style.display = "none"; }
+
+$("uploadBtn").onclick = async () => {
+  hide();
+  const f = $("file").files[0];
+  if(!f){ show("err","请先选择一个 .xlsx 台账文件"); return; }
+  const fd = new FormData(); fd.append("file", f);
+  $("uploadBtn").disabled = true; $("uploadBtn").innerHTML = '<span class="spinner"></span> 上传中';
+  try{
+    const r = await fetch("/api/upload", {method:"POST", body:fd});
+    const j = await r.json();
+    if(!r.ok || j.error){ show("err","上传失败：" + (j.error||"未知错误")); return; }
+    FILE_ID = j.file_id;
+    $("uploadInfo").textContent = `已识别 sheet：${j.sheets.join(" / ")}；行数：${JSON.stringify(j.rows)}`;
+    $("genBtn").disabled = false;
+    show("ok","上传成功，点击「生成排产」");
+  }catch(e){ show("err","上传异常：" + e.message); }
+  finally{ $("uploadBtn").disabled = false; $("uploadBtn").textContent = "① 上传台账"; }
+};
+
+$("genBtn").onclick = async () => {
+  hide();
+  if(!FILE_ID){ show("err","请先上传台账"); return; }
+  $("genBtn").disabled = true; $("genBtn").innerHTML = '<span class="spinner"></span> 生成中';
+  try{
+    const r = await fetch("/api/generate", {method:"POST",
+      headers:{"Content-Type":"application/json"}, body:JSON.stringify({file_id:FILE_ID})});
+    const j = await r.json();
+    if(j.error){ show("err","生成失败：" + j.error); return; }
+    if(j.violations && j.violations.length){
+      show("err","⚠️ 校验未通过（" + j.violations.length + " 条违反），见控制台"); 
+      console.log(j.violations); return;
+    }
+    render(j);
+    show("ok","生成完成：校验 0 违反");
+  }catch(e){ show("err","生成异常：" + e.message); }
+  finally{ $("genBtn").disabled = false; $("genBtn").textContent = "② 生成排产"; }
+};
+
+function render(j){
+  // 指标卡
+  $("kpiCard").style.display = "block";
+  $("kpis").innerHTML = [
+    ["makespan " + j.makespan_end, "排程结束时间"],
+    [j.makespan_min + " 分", "总工时跨度"],
+    [j.late + " / " + j.schedulable, "迟到单数"],
+    [j.tasks, "工序任务数"],
+    [j.available + " / " + j.devices, "可用设备"],
+    [j.skipped, "剔除订单"]
+  ].map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join("");
+
+  // 排单表
+  $("schedCard").style.display = "block";
+  const rows = j.schedule;
+  let html = "<tr><th>机台</th><th>单号</th><th>工序</th><th>数量</th><th>开工</th><th>完工</th><th>工时(分)</th></tr>";
+  rows.forEach(r=>{ html += `<tr><td>${r.device}</td><td>${r.order_id}</td><td>${r.op_name}</td>`
+    + `<td>${r.qty}</td><td>${r.start}</td><td>${r.end}</td><td>${r.minutes}</td></tr>`; });
+  $("schedTable").innerHTML = html;
+
+  // 下载
+  $("dlCard").style.display = "block";
+  $("dlSched").href = "/api/download/schedule";
+  $("dlGantt").href = "/api/download/gantt";
+  $("dlRisk").href = "/api/download/risk";
+  $("dlHealth").href = "/api/download/health";
+
+  // 风险
+  $("riskCard").style.display = "block";
+  $("riskList").innerHTML = j.risk.map(x=>{
+    if(x.deadline===null) return `<div class="muted">⚠️ ${x.order_id}（${x.product}，${x.qty}件）：${x.note}</div>`;
+    const cls = x.late ? "late" : "ontime";
+    const tag = x.late ? `❌ 迟到 ${x.delta_days} 天` : "✅ 按期";
+    return `<div class="${cls}">${x.order_id}（${x.product}，${x.qty}件）：交期 ${x.deadline} → 预计 ${x.end}　${tag}</div>`;
+  }).join("") + `<div style="margin-top:8px"><b>迟到单数：${j.late} / ${j.schedulable}</b></div>`;
+
+  // 体检
+  $("healthCard").style.display = "block";
+  $("healthList").innerHTML = (j.health_issues||[]).map(i=>
+    `<div>· <b>[${i.类别}]</b> ${i.位置} — 现象：${i.现象}；处理：${i.处理}</div>`).join("")
+    || "<div class='muted'>（未发现脏数据）</div>";
+}
+</script>
+</body>
+</html>
