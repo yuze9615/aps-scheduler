@@ -98,6 +98,10 @@ def clean(raw):
             issues.append({"类别": "交期缺失/异常", "位置": f"订单 {oid}",
                            "现象": f"交期='{r.get('交期')}'",
                            "处理": "标记待问客户，本次不计入迟到评估"})
+        elif dl_type != "日期":                        # 尽快 / 月底前 等文字交期
+            issues.append({"类别": "交期文字化", "位置": f"订单 {oid}",
+                           "现象": f"交期='{r.get('交期')}'（{dl_type}）",
+                           "处理": "按兜底日期排入，标记待问客户确认具体交期"})
 
         try:                                          # 数量
             qty = int(float(r.get("数量"))) if r.get("数量") not in (None, "") else None
@@ -112,6 +116,15 @@ def clean(raw):
         priority = ("急" in remark) or ("催" in remark)
         material_late = ("材料" in remark) and (("到" in remark) or ("未到" in remark))
         half = ("先做一半" in remark) or ("一半" in remark)
+
+        if material_late:                              # 材料未到：影响开工
+            issues.append({"类别": "材料未到", "位置": f"订单 {oid}",
+                           "现象": f"备注含材料未到：{remark}",
+                           "处理": "影响开工，标记待问客户；开工顺延至到料"})
+        if half:                                       # 先做一半：工时折算
+            issues.append({"类别": "先做一半", "位置": f"订单 {oid}",
+                           "现象": f"备注含先做一半：{remark}",
+                           "处理": "该单工时按 0.5 系数折算"})
 
         orders.append({
             "order_id": oid, "customer": r.get("客户"), "product": r.get("产品"),
@@ -132,18 +145,18 @@ def clean(raw):
             shifts = 2
         status = str(r.get("状态") or "").strip()
 
-        available, reason = True, ""
+        available, reason, cat = True, "", ""
         if "外协" in status:
-            available, reason = False, "外协不计本厂"
+            available, reason, cat = False, "外协不计本厂", "设备外协"
         elif "停机" in status:
-            available, reason = False, status
+            available, reason, cat = False, status, "设备停机"
         elif "闲置" in status:
-            available, reason = False, "闲置(需确认)"
+            available, reason, cat = False, "闲置(需确认)", "设备闲置"
         elif not dev_id:
-            available, reason = False, "设备号空白"
+            available, reason, cat = False, "设备号空白", "设备号空白"
 
         if not available:
-            issues.append({"类别": "设备不可用", "位置": f"设备 {code}",
+            issues.append({"类别": cat, "位置": f"设备 {code}",
                            "现象": status or "设备号空白",
                            "处理": f"从可用产能剔除：{reason}"})
         devices.append({"dev_id": dev_id, "code": code, "model": r.get("型号"),

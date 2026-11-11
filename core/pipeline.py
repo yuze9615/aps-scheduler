@@ -9,15 +9,24 @@ from config import SCHEDULE_START
 from core import reader, cleaner, instance, solver, checker, report
 
 
-def _build_risk(instances, order_end):
+def _build_risk(instances, order_end, assignments):
     """构造交期风险列表（与 report.write_risk_md 同源逻辑）。"""
     items = []
     late = 0
+    # 每个作业最后一道工序 = 预计完工所在机台/工序（瓶颈卡点）
+    last_by_job = {}
+    for a in assignments:
+        cur = last_by_job.get(a["job_id"])
+        if cur is None or a["end"] > cur["end"]:
+            last_by_job[a["job_id"]] = a
     for j in sorted(instances, key=lambda x: (x["deadline"] is None, x["deadline"] or 0)):
         end = order_end.get(j["job_id"])
+        last = last_by_job.get(j["job_id"])
+        bottleneck = f"{last['device']} / {last['op_name']}" if last else None
         if j["deadline"] is None or end is None:
             items.append({"order_id": j["order_id"], "product": j["product"], "qty": j["qty"],
-                          "deadline": None, "end": None, "late": None, "note": "交期缺失/未排，需人工确认"})
+                          "deadline": None, "end": None, "late": None,
+                          "device": bottleneck, "note": "交期缺失/未排，需人工确认"})
             continue
         delta = (end - j["deadline"]).total_seconds() / 86400
         is_late = delta > 0
@@ -27,7 +36,8 @@ def _build_risk(instances, order_end):
             "order_id": j["order_id"], "product": j["product"], "qty": j["qty"],
             "deadline": j["deadline"].strftime("%Y-%m-%d %H:%M"),
             "end": end.strftime("%Y-%m-%d %H:%M"), "late": is_late,
-            "delta_days": round(delta, 1), "note": "按期" if not is_late else "迟到",
+            "delta_days": round(delta, 1), "device": bottleneck,
+            "note": "按期" if not is_late else "迟到",
         })
     return items, late
 
@@ -51,7 +61,7 @@ def run_pipeline(excel_path, out_dir):
     }
     report.write_schedule_xlsx(files["xlsx"], assignments)
     report.write_gantt_html(files["html"], assignments, devices, makespan, cal)
-    report.write_risk_md(files["risk"], instances, order_end)
+    report.write_risk_md(files["risk"], instances, order_end, assignments)
     report.write_health_md(files["health"], issues, {
         "orders": len(orders), "schedulable": len(instances), "skipped": len(skipped),
         "devices": len(devices),
@@ -61,7 +71,7 @@ def run_pipeline(excel_path, out_dir):
         "makespan_min": cal.elapsed(makespan), "tasks": len(assignments),
     })
 
-    risk_items, late = _build_risk(instances, order_end)
+    risk_items, late = _build_risk(instances, order_end, assignments)
     schedule_json = [{
         "job_id": a["job_id"], "order_id": a["order_id"], "device": a["device"],
         "op_name": a["op_name"], "qty": a["qty"], "minutes": a["minutes"],

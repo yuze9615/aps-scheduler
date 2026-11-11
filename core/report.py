@@ -70,26 +70,34 @@ def write_gantt_html(path, assignments, devices, makespan, cal):
         f.write(html)
 
 
-def write_risk_md(path, instances, order_end):
-    """交期风险清单 md。"""
+def write_risk_md(path, instances, order_end, assignments):
+    """交期风险清单 md。含「卡在哪台机/工序」列（瓶颈卡点）。"""
     lines = ["# 交期风险清单", ""]
+    # 每个作业最后一道工序 = 卡点机台/工序
+    last_by_job = {}
+    for a in assignments:
+        cur = last_by_job.get(a["job_id"])
+        if cur is None or a["end"] > cur["end"]:
+            last_by_job[a["job_id"]] = a
     late = 0
     for j in sorted(instances, key=lambda x: (x["deadline"] is None, x["deadline"] or 0)):
         end = order_end.get(j["job_id"])
+        last = last_by_job.get(j["job_id"])
+        bottleneck = f"{last['device']} / {last['op_name']}" if last else "—"
         if j["deadline"] is None or end is None:
             lines.append(f"- ⚠️ {j['order_id']}（{j['product']}，{j['qty']}件）："
-                         f"交期缺失/未排，需人工确认")
+                         f"交期缺失/未排，需人工确认（卡点：{bottleneck}）")
             continue
         delta = (end - j["deadline"]).total_seconds() / 86400
         if delta > 0:
             late += 1
             lines.append(f"- ❌ {j['order_id']}（{j['product']}，{j['qty']}件）："
                          f"交期 {j['deadline']:%m-%d %H:%M}，预计完工 "
-                         f"{end:%m-%d %H:%M}，迟到 {delta:.1f} 天")
+                         f"{end:%m-%d %H:%M}，迟到 {delta:.1f} 天，卡在 {bottleneck}")
         else:
             lines.append(f"- ✅ {j['order_id']}（{j['product']}，{j['qty']}件）："
                          f"交期 {j['deadline']:%m-%d %H:%M}，预计完工 "
-                         f"{end:%m-%d %H:%M}，按期")
+                         f"{end:%m-%d %H:%M}，按期（卡点：{bottleneck}）")
     lines.append("")
     lines.append(f"**迟到单数：{late} / {len(instances)}**")
     with open(path, "w", encoding="utf-8") as f:

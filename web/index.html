@@ -173,7 +173,7 @@ function render(j){
     if(x.deadline===null) return `<div class="muted">⚠️ ${x.order_id}（${x.product}，${x.qty}件）：${x.note}</div>`;
     const cls = x.late ? "late" : "ontime";
     const tag = x.late ? `❌ 迟到 ${x.delta_days} 天` : "✅ 按期";
-    return `<div class="${cls}">${x.order_id}（${x.product}，${x.qty}件）：交期 ${x.deadline} → 预计 ${x.end}　${tag}</div>`;
+    return `<div class="${cls}">${x.order_id}（${x.product}，${x.qty}件）：交期 ${x.deadline} → 预计 ${x.end}　${tag}　${x.device ? "卡在 " + x.device : ""}</div>`;
   }).join("") + `<div style="margin-top:8px"><b>迟到单数：${j.late} / ${j.schedulable}</b></div>`;
 
   // 体检
