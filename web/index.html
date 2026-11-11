@@ -115,6 +115,7 @@ $("uploadBtn").onclick = async () => {
     FILE_ID = j.file_id;
     $("uploadInfo").textContent = `已识别 sheet：${j.sheets.join(" / ")}；行数：${JSON.stringify(j.rows)}`;
     $("genBtn").disabled = false;
+    $("genBtn").classList.remove("ghost");   // 上传成功 -> 蓝底"可点态"
     show("ok","上传成功，点击「生成排产」");
   }catch(e){ show("err","上传异常：" + e.message); }
   finally{ $("uploadBtn").disabled = false; $("uploadBtn").textContent = "① 上传台账"; }
